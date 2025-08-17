@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 
 import authRoutes from "./routes/auth.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
+import menuRoutes from "./routes/menuRoutes.js";
 
 
 dotenv.config();
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/banners", bannerRoutes);
+app.use("/api/menu", menuRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
