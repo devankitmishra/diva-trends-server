@@ -18,7 +18,12 @@ const transporter = nodemailer.createTransport({
 // ---------------- GENERATE TOKENS ----------------
 const generateAccessToken = (user) => {
   return jwt.sign(
-    { email: user.email, role: user.role },
+    {
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      phone: user.phone,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "15m" }
   );
@@ -32,7 +37,9 @@ const generateRefreshToken = () => {
 export const sendRegisterOtp = async (req, res) => {
   const { email, phone, name } = req.body;
   if (!email || !phone || !name)
-    return res.status(400).json({ message: "Email, phone, and name are required" });
+    return res
+      .status(400)
+      .json({ message: "Email, phone, and name are required" });
 
   const userRef = db.collection("users").doc(email);
   const userDoc = await userRef.get();
@@ -64,7 +71,8 @@ export const verifyRegisterOtp = async (req, res) => {
     return res.status(400).json({ message: "Email and OTP required" });
 
   const record = otpStore[email];
-  if (!record) return res.status(400).json({ message: "Invalid or expired OTP" });
+  if (!record)
+    return res.status(400).json({ message: "Invalid or expired OTP" });
 
   if (record.otp !== Number(otp)) {
     return res.status(400).json({ message: "Invalid OTP" });
@@ -85,11 +93,14 @@ export const verifyRegisterOtp = async (req, res) => {
   const accessToken = generateAccessToken(userData);
   const refreshToken = generateRefreshToken();
 
-  await db.collection("refreshTokens").doc(email).set({
-    token: refreshToken,
-    createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months
-  });
+  await db
+    .collection("refreshTokens")
+    .doc(email)
+    .set({
+      token: refreshToken,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months
+    });
 
   // Set refresh token in HttpOnly cookie
   res.cookie("refreshToken", refreshToken, {
@@ -110,7 +121,9 @@ export const sendLoginOtp = async (req, res) => {
   const userRef = db.collection("users").doc(email);
   const userDoc = await userRef.get();
   if (!userDoc.exists) {
-    return res.status(400).json({ message: "User not found. Please register first." });
+    return res
+      .status(400)
+      .json({ message: "User not found. Please register first." });
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000);
@@ -137,7 +150,8 @@ export const verifyLoginOtp = async (req, res) => {
     return res.status(400).json({ message: "Email and OTP required" });
 
   const record = otpStore[email];
-  if (!record) return res.status(400).json({ message: "Invalid or expired OTP" });
+  if (!record)
+    return res.status(400).json({ message: "Invalid or expired OTP" });
 
   if (record.otp !== Number(otp)) {
     return res.status(400).json({ message: "Invalid OTP" });
@@ -147,7 +161,8 @@ export const verifyLoginOtp = async (req, res) => {
 
   const userRef = db.collection("users").doc(email);
   const userDoc = await userRef.get();
-  if (!userDoc.exists) return res.status(404).json({ message: "User not found" });
+  if (!userDoc.exists)
+    return res.status(404).json({ message: "User not found" });
 
   const userData = userDoc.data();
 
@@ -155,11 +170,14 @@ export const verifyLoginOtp = async (req, res) => {
   const accessToken = generateAccessToken(userData);
   const refreshToken = generateRefreshToken();
 
-  await db.collection("refreshTokens").doc(email).set({
-    token: refreshToken,
-    createdAt: new Date(),
-    expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months
-  });
+  await db
+    .collection("refreshTokens")
+    .doc(email)
+    .set({
+      token: refreshToken,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000), // 6 months
+    });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -176,7 +194,10 @@ export const refreshAccessToken = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) return res.status(401).json({ error: "No refresh token" });
 
-  const tokenDoc = await db.collection("refreshTokens").doc(req.body.email).get();
+  const tokenDoc = await db
+    .collection("refreshTokens")
+    .doc(req.body.email)
+    .get();
   if (!tokenDoc.exists || tokenDoc.data().token !== refreshToken) {
     return res.status(403).json({ error: "Invalid refresh token" });
   }
