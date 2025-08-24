@@ -212,10 +212,27 @@ export const refreshAccessToken = async (req, res) => {
 
 // ---------------- LOGOUT ----------------
 export const logout = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  if (refreshToken) {
-    await db.collection("refreshTokens").doc(req.body.email).delete();
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(400).json({ message: "No refresh token found" });
+    }
+
+    // Find the user with this refreshToken
+    const snapshot = await db.collection("refreshTokens")
+      .where("token", "==", refreshToken)
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      await db.collection("refreshTokens").doc(doc.id).delete();
+    }
+
     res.clearCookie("refreshToken");
+    return res.json({ message: "Logout successful" });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({ message: "Internal server error" });
   }
-  return res.json({ message: "Logout successful" });
 };

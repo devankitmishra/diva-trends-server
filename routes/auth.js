@@ -22,6 +22,6 @@ router.post("/login/verify-otp", verifyLoginOtp);
 router.post("/refresh", refreshAccessToken);
 
 // Logout
-router.post("/logout", logout);
+router.get("/logout", logout);
 
 export default router;
