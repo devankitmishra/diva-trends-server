@@ -1,0 +1,47 @@
+{
+    "product": {
+        "product_id": "string",
+        "name": "string",
+        "wearer": "string",
+        "fabric": "string",
+        "color": [
+            "string"
+        ],
+        "stock": {
+            "color": {
+                "size": "number"
+            }
+        },
+        "images": [
+            "file"
+        ],
+        "type": "string",
+        "print": "string",
+        "fit": "string",
+        "description": "string",
+        "price": "number",
+        "final_price": "number",
+        "currency": "string",
+        "created_date": "date",
+        "updated_date": "date",
+        "reviews": [
+            {
+                "user_id": "string",
+                "username": "string",
+                "rating": "number",
+                "comment": "string",
+                "created_date": "date"
+            }
+        ],
+        "overall_rating": "number",
+        "rating_count": "number",
+        "category": "string",
+        "tags": [
+            "string"
+        ],
+        "material_care": "string",
+        "discount": "number",
+        "is_featured": "boolean",
+        "stock_keeping_unit": "string"
+    }
+}
