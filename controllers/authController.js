@@ -106,7 +106,7 @@ export const verifyRegisterOtp = async (req, res) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
-    sameSite: "Strict",
+    sameSite: "None",
     maxAge: 180 * 24 * 60 * 60 * 1000,
   });
 

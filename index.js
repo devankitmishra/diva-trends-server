@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
     origin: [
       "http://localhost:5173",  // local dev
-      "https://unscript-v48m.onrender.com/", // uat frontend domain
+      "https://unscript-v48m.onrender.com", // uat frontend domain
     ],
     credentials: true, // allow cookies/authorization headers
   }));
