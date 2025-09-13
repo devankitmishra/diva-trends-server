@@ -17,7 +17,6 @@ export default [
           { title: "Shirt", path: "shirt" },
           { title: "Tops & Tees", path: "tops-tees" },
           { title: "Blouse", path: "blouse" },
-          { title: "Add more option", path: "declare-path" },
         ],
       },
       {
@@ -28,7 +27,6 @@ export default [
           { title: "Pant", path: "pant" },
           { title: "Skirt", path: "skirt" },
           { title: "Leggings", path: "leggings" },
-          { title: "Add more option", path: "declare-path" },
         ],
       },
       {
@@ -37,7 +35,6 @@ export default [
         children: [
           { title: "Kurti Pajama Set", path: "kurti-pajama-set" },
           { title: "Shirt Pant Set", path: "shirt-pant-set" },
-          { title: "Add more option", path: "declare-path" },
         ],
       },
       {
@@ -63,7 +60,6 @@ export default [
           { title: "Kurta", path: "kurta" },
           { title: "Shirt", path: "shirt" },
           { title: "T-Shirts", path: "t-shirts" },
-          { title: "Add more option", path: "declare-path" },
         ],
       },
       {
@@ -73,7 +69,6 @@ export default [
           { title: "Pajama", path: "pajama" },
           { title: "Pant", path: "pant" },
           { title: "Jeans", path: "jeans" },
-          { title: "Add more option", path: "declare-path" },
         ],
       },
       {
@@ -82,7 +77,6 @@ export default [
         children: [
           { title: "Kurta Pajama Set", path: "kurta-pajama-set" },
           { title: "Shirt Pant Set", path: "shirt-pant-set" },
-          { title: "Add more option", path: "declare-path" },
         ],
       },
     ],

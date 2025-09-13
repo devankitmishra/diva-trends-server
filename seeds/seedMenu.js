@@ -5,14 +5,6 @@ dotenv.config(); // ensure env is loaded for firebase config
 import { db } from "../config/firebase.js";
 import menu from "./menu.data.js";
 
-/**
- * Recursively writes items to Firestore (collection: menuItems)
- * Adds fields:
- * - parentId (null for root)
- * - order (1-based index)
- * - visible (default true)
- * - fullPath (computed from parentPath + item.path)
- */
 async function writeItems(items, parentId = null, parentFullPath = "") {
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
@@ -56,7 +48,6 @@ async function clearExisting() {
 
 (async () => {
   try {
-    // OPTIONAL: clear before seeding (uncomment if you want a clean slate)
     await clearExisting();
 
     await writeItems(menu, null, "");

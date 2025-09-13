@@ -1,30 +1,22 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { db } from "../config/firebase.js";
 import jwt from "jsonwebtoken";
+import menu from "../seeds/menu.data.js"; // ⬅️ import your static data
 
-// 🔹 Admin check middleware (inline use in controller)
+// ✅ helper: require admin token
 const requireAdmin = (req) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) throw new Error("No token provided");
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  if (decoded.role !== "admin") {
-    throw new Error("Access denied: Admins only");
-  }
-
+  if (decoded.role !== "admin") throw new Error("Access denied: Admins only");
   req.user = decoded;
   return true;
 };
 
-// Helper: recursively delete children
-const deleteChildren = async (parentId) => {
-  const snap = await db.collection("menuItems").where("parentId", "==", parentId).get();
-
-  for (const doc of snap.docs) {
-    await deleteChildren(doc.id); // recursive delete children
-    await db.collection("menuItems").doc(doc.id).delete();
-  }
-};
-
+// ✅ helper: recursively build the tree for GET
 const buildTree = (items, parentId = null) => {
   return items
     .filter((i) => (i.parentId || null) === parentId)
@@ -39,7 +31,44 @@ const buildTree = (items, parentId = null) => {
     }));
 };
 
-// 📌 Get menu (public)
+// ✅ helper: clear collection
+const clearExisting = async () => {
+  const snap = await db.collection("menuItems").get();
+  const batch = db.batch();
+  snap.docs.forEach((doc) => batch.delete(doc.ref));
+  await batch.commit();
+};
+
+// ✅ helper: write menu recursively
+const writeItems = async (items, parentId = null, parentFullPath = "") => {
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+
+    const rawPath = item.path || "";
+    const isAbsolute = rawPath.startsWith("/");
+    const fullPath = isAbsolute
+      ? rawPath
+      : `${parentFullPath.replace(/\/$/, "")}/${rawPath}`.replace(/\/+/g, "/");
+
+    const data = {
+      title: item.title,
+      path: rawPath,
+      fullPath,
+      parentId,
+      order: i + 1,
+      visible: item.visible !== undefined ? item.visible : true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const docRef = await db.collection("menuItems").add(data);
+    if (Array.isArray(item.children) && item.children.length > 0) {
+      await writeItems(item.children, docRef.id, fullPath);
+    }
+  }
+};
+
+// 📌 GET /menu (public)
 export const getMenu = async (req, res) => {
   try {
     const snap = await db.collection("menuItems").get();
@@ -53,68 +82,20 @@ export const getMenu = async (req, res) => {
   }
 };
 
-// 📌 Create menu item (admin only)
-export const createMenuItem = async (req, res) => {
+// 📌 POST /menu/seed (admin only)
+export const seedMenu = async (req, res) => {
   try {
-    requireAdmin(req); // 🔥 check admin
+    requireAdmin(req);
 
-    const { title, path, parentId = null, order = 0, visible = true } = req.body;
+    await clearExisting();
 
-    if (!title || !path) {
-      return res.status(400).json({ error: "Title and path are required" });
+    if (menu.length > 0) {
+      await writeItems(menu, null, "");
     }
 
-    const newItem = {
-      title,
-      path,
-      parentId,
-      order,
-      visible,
-      fullPath: parentId ? `${parentId}${path}` : path,
-    };
-
-    const docRef = await db.collection("menuItems").add(newItem);
-    res.status(201).json({ id: docRef.id, ...newItem });
+    res.json({ message: "Menu seeded successfully" });
   } catch (err) {
-    console.error("Failed to create menu item:", err);
-    res.status(403).json({ error: err.message || "Failed to create menu item" });
-  }
-};
-
-// 📌 Update menu item (admin only)
-export const updateMenuItem = async (req, res) => {
-  try {
-    requireAdmin(req); // 🔥 check admin
-
-    const { id } = req.params;
-    const updates = req.body;
-
-    await db.collection("menuItems").doc(id).update(updates);
-
-    const updatedDoc = await db.collection("menuItems").doc(id).get();
-    res.json({ id: updatedDoc.id, ...updatedDoc.data() });
-  } catch (err) {
-    console.error("Failed to update menu item:", err);
-    res.status(403).json({ error: err.message || "Failed to update menu item" });
-  }
-};
-
-// 📌 Delete menu item (admin only)
-export const deleteMenuItem = async (req, res) => {
-  try {
-    requireAdmin(req); // 🔥 check admin
-
-    const { id } = req.params;
-
-    // Delete children first
-    await deleteChildren(id);
-
-    // Delete parent
-    await db.collection("menuItems").doc(id).delete();
-
-    res.json({ message: "Menu item and its children deleted" });
-  } catch (err) {
-    console.error("Failed to delete menu item:", err);
-    res.status(403).json({ error: err.message || "Failed to delete menu item" });
+    console.error("Seeding failed:", err);
+    res.status(403).json({ error: err.message || "Seeding failed" });
   }
 };
